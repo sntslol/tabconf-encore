@@ -43,19 +43,20 @@ export default function Home() {
             }
             intro={
               <div className="encore-intro">
-                <p className="home-hero__eyebrow">A community petition</p>
+                <p className="home-hero__eyebrow">A very reasonable plea</p>
                 <Image className="home-hero__logo" src="/brand/tabconf8-logo.png" width={720} height={411} sizes="250px" loading="eager" alt="TABCONF 8 — the official colorful keycap logo" />
                 <h1 id="hero-title">ENCORE</h1>
                 <p className="home-hero__tagline">One more year. One more TABCONF.</p>
+                <p className="home-hero__plea">“The final TABCONF”? We’re choosing denial.</p>
               </div>
             }
           />
 
           <section className="petition-statement" id="petition" aria-labelledby="petition-title">
             <p className="section-kicker">Technical. Accessible. Bitcoin. Community.</p>
-            <h2 id="petition-title">Good things deserve an encore.</h2>
-            <p>TABCONF brings Bitcoin builders together to learn, debate, and make things happen. The talks end. The connections don’t.</p>
-            <p>To the organizers: thank you for creating this space. We’d love to see TABCONF return for another year. Our signatures are a show of support for an encore — and for the people who make it possible.</p>
+            <h2 id="petition-title">Please don’t roll the credits yet.</h2>
+            <p>TABCONF is where Bitcoin builders turn hallway conversations into real projects. We’re not emotionally prepared to replace that with a group chat.</p>
+            <p>To the organizers: thank you for all the work behind this. We know another year is a big ask. Consider this our standing ovation, mildly disguised as a petition: please bring TABCONF back for one more.</p>
             <a className="text-link" href="#sign">Add your voice <ArrowUpRight size={16} /></a>
           </section>
         </main>
@@ -64,7 +65,7 @@ export default function Home() {
       <footer className="site-footer">
         <div className="site-footer__inner">
           <p className="site-footer__tagline">TABConf ENCORE · One community. One more year.</p>
-          <p>A community-led petition for another year of TABCONF.</p>
+          <p>Community-led. Slightly dramatic. Very sincere.</p>
           <nav aria-label="Footer"><a href="https://tabconf.com" target="_blank" rel="noreferrer">TABConf.com</a><a href="/privacy">Privacy</a><a href="https://github.com/sntslol/tabconf-encore" target="_blank" rel="noreferrer">Source code</a></nav>
         </div>
       </footer>

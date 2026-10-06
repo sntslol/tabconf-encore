@@ -8,7 +8,7 @@ export function ShareButton({ className = "" }: { className?: string }) {
   async function share() {
     const url = window.location.origin;
     if (navigator.share) {
-      try { await navigator.share({ title: "TABCONF ENCORE", text: "One more year. One more TABCONF. Add your name to the petition.", url }); return; }
+      try { await navigator.share({ title: "TABCONF ENCORE", text: "The final TABCONF? We’re choosing denial. Add your name for one more year.", url }); return; }
       catch (error) { if (error instanceof DOMException && error.name === "AbortError") return; }
     }
     try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 3000); }

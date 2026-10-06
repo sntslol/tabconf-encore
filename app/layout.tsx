@@ -15,9 +15,9 @@ const sans = localFont({ src: [
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://tabconf-encore.vercel.app"),
   title: "TABCONF ENCORE — One more year. One more TABCONF.",
-  description: "Let's keep building together. Add your name to the community petition for another year of TABCONF. No email. No account. One more year.",
-  openGraph: { title: "TABCONF ENCORE", description: "One more year. One more TABCONF. Sign the community petition.", type: "website", images: [{ url: "/og.png", width: 1200, height: 630 }] },
-  twitter: { card: "summary_large_image", title: "TABCONF ENCORE", description: "One more year. One more TABCONF. Add your name.", images: ["/og.png"] },
+  description: "The final TABCONF? We’re choosing denial. Add your name to the community petition for one more year. No email. No account.",
+  openGraph: { title: "TABCONF ENCORE", description: "Please don’t roll the credits yet. Sign the community petition for one more year of TABCONF.", type: "website", images: [{ url: "/og.png", width: 1200, height: 630 }] },
+  twitter: { card: "summary_large_image", title: "TABCONF ENCORE", description: "The final TABCONF? We’re choosing denial. Add your name for one more year.", images: ["/og.png"] },
   robots: { index: true, follow: true },
 };
 
