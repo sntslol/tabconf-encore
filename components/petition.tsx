@@ -4,6 +4,8 @@ import { ArrowRight, Check, LockKeyhole, MoveUpRight, Radio } from "lucide-react
 import type { PetitionSnapshot } from "@/lib/petition";
 import { ShareButton } from "./share-button";
 
+const SIGNATURE_GOAL = 1000;
+
 export function Petition({ artwork, intro }: { artwork: ReactNode; intro: ReactNode }) {
   const [snapshot, setSnapshot] = useState<PetitionSnapshot | null>(null);
   const [loadingError, setLoadingError] = useState(false);
@@ -12,6 +14,7 @@ export function Petition({ artwork, intro }: { artwork: ReactNode; intro: ReactN
   const [signed, setSigned] = useState(false);
   const [signer, setSigner] = useState("");
   const [loadingMore, setLoadingMore] = useState(false);
+  const [initialsOnly, setInitialsOnly] = useState(false);
   const startedAt = useRef(0);
   const refresh = useCallback(async () => {
     try { const response = await fetch("/api/signatures", { cache: "no-store" }); if (!response.ok) throw new Error(); setSnapshot(await response.json()); setLoadingError(false); }
@@ -26,7 +29,7 @@ export function Petition({ artwork, intro }: { artwork: ReactNode; intro: ReactN
     const data = new FormData(form);
     setError(""); setPending(true);
     try {
-      const response = await fetch("/api/signatures", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: data.get("name"), email: data.get("email"), website: data.get("website"), consent: true, startedAt: startedAt.current }) });
+      const response = await fetch("/api/signatures", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: data.get("name"), initialsOnly: data.get("initialsOnly") === "on", email: data.get("email"), website: data.get("website"), consent: true, startedAt: startedAt.current }) });
       const result = await response.json();
       if (!response.ok) { setError(result.error || "Your signature wasn’t saved. Please try again."); return; }
       setSigner(result.signature.name); setSigned(true); form.reset(); await refresh();
@@ -42,16 +45,20 @@ export function Petition({ artwork, intro }: { artwork: ReactNode; intro: ReactN
     finally { setLoadingMore(false); }
   }
 
-  return <><section className="home-hero" aria-labelledby="hero-title">{artwork}<div className="home-hero__body">{intro}<section className="sign-card" id="sign" aria-labelledby="sign-title">
+  return <><section className="petition-goal" aria-label="Petition signature goal">
+    <div className="petition-goal__heading"><strong>{snapshot && snapshot.total >= SIGNATURE_GOAL ? "Encore goal reached!" : "Encore goal"}</strong><span aria-live="polite">{snapshot ? snapshot.total.toLocaleString() : "—"} / {SIGNATURE_GOAL.toLocaleString()} signatures</span></div>
+    <progress max={SIGNATURE_GOAL} value={snapshot ? Math.min(snapshot.total, SIGNATURE_GOAL) : undefined} aria-label="Signatures toward the 1,000-signature goal" />
+  </section><section className="home-hero" aria-labelledby="hero-title">{artwork}<div className="home-hero__body">{intro}<section className="sign-card" id="sign" aria-labelledby="sign-title">
     {signed ? <div className="success-state" role="status"><div className="success-icon"><Check size={30} /></div><span className="section-kicker">APPLAUSE INTENSIFIES</span><h2 id="sign-title">Thanks, {signer.split(" ")[0]}.</h2><p>Your name is on the petition.<br />Our very reasonable plea just got louder.</p><ShareButton className="success-share" /><a href="#supporters" className="success-supporters">See the community <ArrowRight size={15} /></a></div> : <>
       <h2 id="sign-title" className="visually-hidden">Sign the petition</h2>
       <form onSubmit={sign} className="sign-form">
-        <div className="field"><label htmlFor="name">Your name <span>PUBLIC</span></label><input autoComplete="name" name="name" id="name" placeholder="Satoshi Nakamoto" minLength={2} maxLength={70} required disabled={pending} /></div>
+        <div className="field"><label htmlFor="name">Your name <span>{initialsOnly ? "INITIALS ONLY" : "PUBLIC"}</span></label><input autoComplete="name" name="name" id="name" placeholder="Satoshi Nakamoto" minLength={2} maxLength={70} required disabled={pending} /></div>
+        <label className="initials-option"><input type="checkbox" name="initialsOnly" checked={initialsOnly} onChange={event => setInitialsOnly(event.target.checked)} disabled={pending} /><span>Only show my initials <small>Optional</small></span></label>
         <div className="field"><label htmlFor="email">Email address <LockKeyhole size={12} /><span>PRIVATE</span></label><input type="email" autoComplete="email" inputMode="email" name="email" id="email" placeholder="you@example.com" maxLength={254} required disabled={pending} aria-describedby="email-note" /></div>
         <div className="honeypot" aria-hidden="true"><label htmlFor="website">Leave this blank</label><input name="website" id="website" tabIndex={-1} autoComplete="off" /></div>
         <p className="sign-note" id="email-note">Your email stays private. Only used to let you know if we get enough signatures.</p>
         <button className="sign-button" disabled={pending} type="submit">{pending ? "Adding your name…" : "Sign for one more year"}<MoveUpRight size={20} /></button>
-        <p className="consent-note">By signing, you support the petition and agree to display your name publicly. <a href="/privacy">Privacy details</a></p>
+        <p className="consent-note">By signing, you support the petition and agree to display your {initialsOnly ? "initials" : "name"} publicly. <a href="/privacy">Privacy details</a></p>
         {error && <p className="form-error" role="alert">{error}</p>}
       </form>
     </>}

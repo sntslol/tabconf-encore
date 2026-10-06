@@ -7,7 +7,7 @@ export default function Privacy() {
       <span className="section-kicker">TABCONF ENCORE</span>
       <h1>Your name. Your voice.<br />Your privacy.</h1>
       <h2>What appears publicly</h2>
-      <p>The name you enter appears on the petition’s public signature list, along with the time you signed. Use the name you’re comfortable sharing. Your email never appears on the public list.</p>
+      <p>The name you enter appears on the petition’s public signature list, along with the time you signed. Use the name you’re comfortable sharing. If you check “Only show my initials,” we save and display only your initials; your full name is not saved. Your email never appears on the public list.</p>
       <h2>Your private email</h2>
       <p>Email is required to sign, so we can let you know if we get enough signatures. That is its only use. We store it encrypted, and only the petition maintainer can access it for that purpose. Your email is never shown publicly and does not subscribe you to a newsletter or marketing list.</p>
       <h2>Preventing repeat signatures</h2>

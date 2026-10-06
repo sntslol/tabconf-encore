@@ -26,6 +26,31 @@ test("simultaneous submissions from the same browser count once", async () => {
   assert.deepEqual(responses.map(r => r.status).sort(), [201, 409]);
   assert.equal((await (await request("/signatures")).json()).total, 1);
 });
+test("initials-only signatures never store or return the full name", async () => {
+  const { database, request, sign } = setup();
+  for (const [name, expected] of [["Ada Lovelace", "A. L."], ["  Mary   Jane Watson  ", "M. J. W."], ["Élodie Brontë", "É. B."], ["李 小龍", "李. 小."], ["Cher", "C."]]) {
+    const response = await sign({ name, initialsOnly: true });
+    assert.equal(response.status, 201);
+    const signature = (await response.json()).signature;
+    assert.equal(signature.name, expected);
+    assert.equal(database.prepare("SELECT name FROM signatures WHERE id = ?").get(signature.id).name, expected);
+    const publicNames = (await (await request("/signatures")).json()).signatures;
+    assert.equal(publicNames.find(item => item.id === signature.id).name, expected);
+    const contacts = (await (await request("/notification-contacts")).json()).contacts;
+    assert.equal(contacts.find(contact => contact.id === signature.id).name, expected);
+  }
+  const fullName = await sign({ name: "Grace Hopper", initialsOnly: false });
+  assert.equal(fullName.status, 201);
+  assert.equal((await fullName.json()).signature.name, "Grace Hopper");
+  assert.equal((await (await request("/signatures")).json()).total, 6);
+  database.close();
+});
+test("an invalid initials preference cannot accidentally publish a full name", async () => {
+  const { database, request, sign } = setup();
+  for (const initialsOnly of ["true", "false", 1, null, []]) assert.equal((await sign({ initialsOnly })).status, 400);
+  assert.equal((await (await request("/signatures")).json()).total, 0);
+  database.close();
+});
 test("invalid fields, absent consent, and bot traps cannot write signatures", async () => {
   const { request, sign } = setup();
   for (const invalid of [{ signerId: "invalid" }, { name: "A" }, { name: "<script>bad</script>" }, { name: "https://spam.test" }, { email: "invalid" }, { email: 42 }, { email: `${"a".repeat(255)}@example.com` }, { consent: false }, { website: "spam" }, { startedAt: Date.now() + 10000 }]) assert.equal((await sign(invalid)).status, 400);

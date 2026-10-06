@@ -20,7 +20,7 @@ test("required private email passes through without appearing in public response
     return request("/signatures", "POST", body, true, options.headers["X-Petition-IP"]);
   });
   const callerSuppliedId = crypto.randomUUID();
-  const payload = { name: "Same Name", website: "", consent: true, startedAt: Date.now() - 2000, signerId: callerSuppliedId, email: "notify-me@example.com" };
+  const payload = { name: "Same Name", initialsOnly: true, website: "", consent: true, startedAt: Date.now() - 2000, signerId: callerSuppliedId, email: "notify-me@example.com" };
   const submit = (body, cookie) => POST(new NextRequest("https://encore.test/api/signatures", {
     method: "POST", headers: { "Content-Type": "application/json", Origin: "https://encore.test", ...(cookie ? { Cookie: cookie } : {}) },
     body: JSON.stringify(body),
@@ -35,7 +35,11 @@ test("required private email passes through without appearing in public response
   assert.match(cookie, /Path=\/api\/signatures/);
   assert.match(cookie, /Max-Age=31536000/);
   assert.equal(forwarded[0].email, "notify-me@example.com");
-  assert.equal(JSON.stringify(await first.json()).includes("notify-me@example.com"), false);
+  assert.equal(forwarded[0].initialsOnly, true);
+  const publicResult = await first.json();
+  assert.equal(publicResult.signature.name, "S. N.");
+  assert.equal(JSON.stringify(publicResult).includes("Same Name"), false);
+  assert.equal(JSON.stringify(publicResult).includes("notify-me@example.com"), false);
   assert.notEqual(forwarded[0].signerId, callerSuppliedId);
 
   const repeat = await submit({ ...payload, signerId: crypto.randomUUID() }, cookie.split(";")[0]);

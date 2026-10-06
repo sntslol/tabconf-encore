@@ -2,6 +2,8 @@
 
 A public community petition for another year of TABCONF. Next.js App Router, TypeScript, React, and plain CSS. Public names, required private email, and no account. Emails are only for letting signers know if the petition gets enough signatures.
 
+The live progress bar aims for 1,000 signatures and updates with the signature count. Signers can optionally choose “Only show my initials.” The data service converts the name before storage, so only initials are saved and returned for those signatures. Existing signatures keep their original public names. Reaching the goal does not automatically send email or guarantee another event.
+
 ## Develop
 
 Requires Node.js 22.13 or newer. Production uses Node.js 24.
