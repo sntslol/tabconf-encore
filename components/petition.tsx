@@ -1,10 +1,10 @@
 "use client";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowRight, Check, LockKeyhole, MoveUpRight, PenLine, Radio } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { ArrowRight, Check, LockKeyhole, MoveUpRight, Radio } from "lucide-react";
 import type { PetitionSnapshot } from "@/lib/petition";
 import { ShareButton } from "./share-button";
 
-export function Petition() {
+export function Petition({ artwork, intro }: { artwork: ReactNode; intro: ReactNode }) {
   const [snapshot, setSnapshot] = useState<PetitionSnapshot | null>(null);
   const [loadingError, setLoadingError] = useState(false);
   const [pending, setPending] = useState(false);
@@ -42,10 +42,9 @@ export function Petition() {
     finally { setLoadingMore(false); }
   }
 
-  return <div className="petition-column"><section className="sign-card" id="sign" aria-labelledby="sign-title">
-    <div className="card-topline"><span className="petition-label"><span className="live-dot" /> THE PETITION IS OPEN</span><PenLine size={20} strokeWidth={1.5} /></div>
+  return <><section className="home-hero" aria-labelledby="hero-title">{artwork}<div className="home-hero__body">{intro}<section className="sign-card" id="sign" aria-labelledby="sign-title">
     {signed ? <div className="success-state" role="status"><div className="success-icon"><Check size={30} /></div><span className="section-kicker">YOU’RE PART OF THE ENCORE</span><h2 id="sign-title">Thanks, {signer.split(" ")[0]}.</h2><p>Your name is on the petition.<br />Help turn one voice into a whole room.</p><ShareButton className="success-share" /><a href="#supporters" className="success-supporters">See the community <ArrowRight size={15} /></a></div> : <>
-      <h2 id="sign-title">Count me in.</h2><p className="sign-subtitle">I want another year of TABCONF.</p>
+      <h2 id="sign-title" className="visually-hidden">Sign the petition</h2>
       <form onSubmit={sign} className="sign-form">
         <div className="field"><label htmlFor="name">Your name <span>PUBLIC</span></label><input autoComplete="name" name="name" id="name" placeholder="Satoshi Nakamoto" minLength={2} maxLength={70} required disabled={pending} /></div>
         <div className="field"><label htmlFor="email">Email address <LockKeyhole size={12} /></label><input type="email" autoComplete="email" inputMode="email" name="email" id="email" placeholder="you@example.com" maxLength={254} required disabled={pending} aria-describedby="email-note" /></div>
@@ -56,9 +55,9 @@ export function Petition() {
         {error && <p className="form-error" role="alert">{error}</p>}
       </form>
     </>}
-    <div className="signature-total"><div className="supporter-symbols" aria-hidden="true"><span>✳</span><span>↗</span><span>♥</span></div><div aria-live="polite"><strong>{snapshot ? snapshot.total.toLocaleString() : "—"} <span>{snapshot?.total === 1 ? "signature" : "signatures"}</span></strong><p>{snapshot?.total === 0 ? "Your voice can start the encore." : "One community. One more year."}</p></div></div>
-  </section>
-  <section className="supporters-section" id="supporters" aria-labelledby="supporters-title"><div className="supporters-heading"><h2 id="supporters-title">The encore starts with us.</h2><span><Radio size={13} /> LIVE</span></div>
+    <div className="signature-total" aria-live="polite"><strong>{snapshot ? snapshot.total.toLocaleString() : "—"} <span>{snapshot?.total === 1 ? "signature" : "signatures"}</span></strong><a href="#supporters">View signatures <ArrowRight size={13} /></a></div>
+  </section></div></section>
+  <section className="supporters-section" id="supporters" aria-labelledby="supporters-title"><div className="supporters-heading"><h2 id="supporters-title">Community signatures</h2><span><Radio size={13} /> LIVE</span></div>
     {loadingError ? <div className="supporter-empty"><p>Couldn’t load the signatures.</p><button onClick={() => void refresh()} type="button">Try again <ArrowRight size={14} /></button></div> : !snapshot ? <p className="supporters-loading">Getting the community together…</p> : snapshot.total === 0 ? <div className="supporter-empty"><p>No signatures yet. Yours could be the first.</p><a href="#sign">Start the encore <ArrowRight size={14} /></a></div> : <><ul className="supporter-list">{snapshot.signatures.map(signature => <li key={signature.id}><span className="supporter-avatar" aria-hidden="true">{signature.name.split(/\s+/).map(word => Array.from(word)[0]).slice(0, 2).join("").toUpperCase()}</span><span>{signature.name}</span><Check size={13} /></li>)}</ul>{snapshot.hasMore && <button className="load-more" onClick={loadMore} disabled={loadingMore}>{loadingMore ? "Loading…" : "More signatures"} <ArrowRight size={14} /></button>}</>}
-  </section></div>;
+  </section></>;
 }

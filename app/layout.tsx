@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
-const display = localFont({ src: "../public/fonts/barlow-condensed-800.ttf", variable: "--font-display", display: "swap" });
+const mono = localFont({ src: [
+  { path: "../public/fonts/jetbrains-mono-400.ttf", weight: "400" },
+  { path: "../public/fonts/jetbrains-mono-500.ttf", weight: "500" },
+], variable: "--font-mono", display: "swap" });
 const sans = localFont({ src: [
-  { path: "../public/fonts/dm-sans-400.ttf", weight: "400" },
-  { path: "../public/fonts/dm-sans-600.ttf", weight: "600" },
+  { path: "../public/fonts/instrument-sans-400.ttf", weight: "400" },
+  { path: "../public/fonts/instrument-sans-600.ttf", weight: "600" },
+  { path: "../public/fonts/instrument-sans-700.ttf", weight: "700" },
 ], variable: "--font-sans", display: "swap" });
 
 export const metadata: Metadata = {
@@ -18,5 +22,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" className={`${display.variable} ${sans.variable}`}><body>{children}</body></html>;
+  return <html lang="en" className={`${mono.variable} ${sans.variable}`}><body>{children}</body></html>;
 }
