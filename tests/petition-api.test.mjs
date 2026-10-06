@@ -1,51 +1,34 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
-import { readFileSync } from "node:fs";
-import worker from "../petition-api/worker/index.js";
+import { readFileSync, readdirSync } from "node:fs";
+import { setup } from "./petition-fixture.mjs";
 
-function setup() {
-  const database = new DatabaseSync(":memory:");
-  database.exec(readFileSync(new URL("../petition-api/drizzle/0000_luxuriant_synch.sql", import.meta.url), "utf8"));
-  const prepare = sql => {
-    let params = [];
-    return {
-      bind(...values) { params = values; return this; },
-      async first() { return database.prepare(sql).get(...params) || null; },
-      async all() { return { results: database.prepare(sql).all(...params) }; },
-      async run() { return database.prepare(sql).run(...params); },
-    };
-  };
-  const env = { API_SECRET: "test-api-secret", HASH_SECRET: "test-hash-secret", DB: { prepare, async batch(statements) { return Promise.all(statements.map(statement => statement.all())); } } };
-  const request = (path, method = "GET", body, authenticated = true, ip = "test-ip") => worker.fetch(new Request(`https://petition.test${path}`, {
-    method, headers: { ...(authenticated ? { Authorization: "Bearer test-api-secret" } : {}), "Content-Type": "application/json", "X-Petition-IP": ip },
-    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-  }), env);
-  const sign = (overrides = {}, ip) => request("/signatures", "POST", { name: "Ada Lovelace", email: "ada@example.com", consent: true, website: "", startedAt: Date.now() - 2000, ...overrides }, true, ip);
-  return { database, request, sign };
-}
 
-test("signatures persist and the public list never exposes email or hashes", async () => {
+test("name-only signatures persist without exposing anonymous identifiers", async () => {
   const { database, request, sign } = setup();
-  assert.equal((await sign()).status, 201);
+  const signerId = crypto.randomUUID();
+  assert.equal((await sign({ signerId })).status, 201);
   const data = await (await request("/signatures")).json();
   assert.equal(data.total, 1);
   assert.equal(data.signatures[0].name, "Ada Lovelace");
   assert.deepEqual(Object.keys(data.signatures[0]).sort(), ["id", "name", "signedAt"]);
-  assert.equal(JSON.stringify(data).includes("ada@example.com"), false);
+  assert.equal(JSON.stringify(data).includes(signerId), false);
   const stored = database.prepare("SELECT * FROM signatures").get();
-  assert.equal(stored.email_hash.length, 64);
-  assert.equal(JSON.stringify(stored).includes("ada@example.com"), false);
+  assert.equal(stored.signer_hash.length, 64);
+  assert.equal(JSON.stringify(stored).includes(signerId), false);
+  assert.equal("email_hash" in stored, false);
 });
-test("case-insensitive duplicates and simultaneous submissions count once", async () => {
+test("simultaneous submissions from the same browser count once", async () => {
   const { request, sign } = setup();
-  const responses = await Promise.all([sign(), sign({ email: " ADA@EXAMPLE.COM " })]);
+  const signerId = crypto.randomUUID();
+  const responses = await Promise.all([sign({ signerId }), sign({ signerId })]);
   assert.deepEqual(responses.map(r => r.status).sort(), [201, 409]);
   assert.equal((await (await request("/signatures")).json()).total, 1);
 });
 test("invalid fields, absent consent, and bot traps cannot write signatures", async () => {
   const { request, sign } = setup();
-  for (const invalid of [{ email: "not-email" }, { name: "A" }, { name: "<script>bad</script>" }, { name: "https://spam.test" }, { consent: false }, { website: "spam" }, { startedAt: Date.now() + 10000 }]) assert.equal((await sign(invalid)).status, 400);
+  for (const invalid of [{ signerId: "invalid" }, { name: "A" }, { name: "<script>bad</script>" }, { name: "https://spam.test" }, { consent: false }, { website: "spam" }, { startedAt: Date.now() + 10000 }]) assert.equal((await sign(invalid)).status, 400);
   assert.equal((await (await request("/signatures")).json()).total, 0);
 });
 test("data service rejects unauthorized writes and reads", async () => {
@@ -55,7 +38,7 @@ test("data service rejects unauthorized writes and reads", async () => {
 });
 test("public names paginate and moderation removes only the chosen signature", async () => {
   const { request, sign } = setup();
-  for (let i = 0; i < 14; i++) assert.equal((await sign({ name: `Signer ${i}`, email: `signer${i}@example.com` })).status, 201);
+  for (let i = 0; i < 14; i++) assert.equal((await sign({ name: `Signer ${i}` })).status, 201);
   const first = await (await request("/signatures")).json();
   const second = await (await request("/signatures?offset=12")).json();
   assert.equal(first.total, 14); assert.equal(first.signatures.length, 12); assert.equal(first.hasMore, true);
@@ -66,8 +49,27 @@ test("public names paginate and moderation removes only the chosen signature", a
 });
 test("rate limits persist in the database and keep separate networks independent", async () => {
   const { request, sign } = setup();
-  for (let i = 0; i < 100; i++) await sign({ email: `rate${i}@example.com` });
-  assert.equal((await sign({ email: "limited@example.com" })).status, 429);
-  assert.equal((await sign({ email: "other@example.com" }, "other-ip")).status, 201);
+  for (let i = 0; i < 100; i++) await sign();
+  assert.equal((await sign()).status, 429);
+  assert.equal((await sign({}, "other-ip")).status, 201);
   assert.equal((await (await request("/signatures")).json()).total, 101);
+});
+
+
+test("different browsers can sign with the same public name and no email", async () => {
+  const { request, sign } = setup();
+  assert.equal((await sign({ signerId: undefined })).status, 201);
+  assert.equal((await sign()).status, 201);
+  assert.equal((await (await request("/signatures")).json()).total, 2);
+});
+
+test("the migration preserves existing signatures", () => {
+  const database = new DatabaseSync(":memory:");
+  const migrations = new URL("../petition-api/drizzle/", import.meta.url);
+  const files = readdirSync(migrations).filter(file => file.endsWith(".sql")).sort();
+  database.exec(readFileSync(new URL(files[0], migrations), "utf8"));
+  database.prepare("INSERT INTO signatures (id, name, email_hash, signed_at) VALUES (?, ?, ?, ?)").run("old-id", "Existing supporter", "legacy-fingerprint", "2026-10-01T00:00:00Z");
+  for (const file of files.slice(1)) database.exec(readFileSync(new URL(file, migrations), "utf8"));
+  assert.deepEqual({ ...database.prepare("SELECT * FROM signatures").get() }, { id: "old-id", name: "Existing supporter", signer_hash: "legacy-fingerprint", signed_at: "2026-10-01T00:00:00Z" });
+  database.close();
 });

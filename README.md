@@ -1,6 +1,6 @@
 # TABCONF ENCORE
 
-A public community petition for another year of TABCONF. Next.js App Router, TypeScript, React, and plain CSS. Two fields, no account, public names, private email fingerprints.
+A public community petition for another year of TABCONF. Next.js App Router, TypeScript, React, and plain CSS. Just a name: no email, no account, public signatures.
 
 ## Develop
 
@@ -52,11 +52,11 @@ npx vercel --prod --scope nirgalsofts-projects
 
 ## Privacy and moderation
 
-Only name, signature ID, and signing time are returned publicly. The email is normalized and transformed with HMAC-SHA256; the raw email is not stored. A unique database index prevents duplicate signatures, including simultaneous requests. Network fingerprints provide a persistent limit of 100 attempts per minute, allowing attendees on shared conference Wi-Fi to sign. Expired rate records are removed on later submissions. Names render as text, never HTML.
+Only name, signature ID, and signing time are returned publicly. No email is collected. After a successful signature, Next.js sets a random, anonymous `encore-signer` cookie for one year, scoped to `/api/signatures` with HttpOnly, SameSite=Lax, and Secure on HTTPS. The service stores only an HMAC-SHA256 fingerprint of this identifier, with a unique database index to prevent repeat signatures from the same browser. Different people can use the same name; names are not unique. Network fingerprints provide a persistent limit of 100 attempts per minute, allowing attendees on shared conference Wi-Fi to sign. Expired rate records are removed on later submissions. Names render as text, never HTML.
 
 Maintainers can remove spam or fulfill a removal request using the protected `DELETE /signatures/<id>` endpoint on the data service. Authenticate server-side with `Authorization: Bearer <API_SECRET>` and `OAI-Sites-Authorization: Bearer <PETITION_SERVICE_TOKEN>`. There is no public deletion endpoint or browser admin credential. Never paste these tokens into issues or commits.
 
-Signatures are expressions of support, not email-verified identities. This intentionally keeps the petition easy to sign.
+Signatures are expressions of support, not verified identities. Browser-based duplicate detection is a convenience, not proof of one signature per person: cookies can be cleared and devices can be shared. This intentionally keeps the petition easy to sign. The appended database migration renames the old fingerprint column while preserving existing public signatures.
 
 ## Design
 

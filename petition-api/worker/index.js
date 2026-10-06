@@ -34,9 +34,9 @@ async function sign(request, env) {
   } catch { return json({ error: "Please check your details and try again." }, 400); }
   if (!body || typeof body !== "object") return json({ error: "Please check your details and try again." }, 400);
   const name = typeof body.name === "string" ? body.name.normalize("NFKC").trim().replace(/\s+/g, " ") : "";
-  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const signerId = body.signerId ?? crypto.randomUUID();
   if (name.length < 2 || name.length > 70 || /[<>\u0000-\u001f\u007f]/.test(name) || /https?:\/\/|www\./i.test(name)) return json({ error: "Please enter a name between 2 and 70 characters, without links." }, 400);
-  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return json({ error: "Please enter a valid email address." }, 400);
+  if (typeof signerId !== "string" || !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(signerId)) return json({ error: "Please refresh the page and try again." }, 400);
   if (body.consent !== true) return json({ error: "Please agree to display your name publicly." }, 400);
   const elapsed = Date.now() - Number(body.startedAt);
   if (body.website || !Number.isFinite(elapsed) || elapsed < 1200 || elapsed > 86400000) return json({ error: "Please refresh the page and try again." }, 400);
@@ -44,15 +44,15 @@ async function sign(request, env) {
   const ip = request.headers.get("x-petition-ip") || "unknown";
   const now = Date.now();
   // A conference crowd may share one Wi-Fi address. Keep the network limit
-  // generous; email uniqueness and the bot traps do the finer filtering.
+  // generous; browser fingerprints and the bot traps do the finer filtering.
   const key = await fingerprint(env.HASH_SECRET, `rate:${ip}:${Math.floor(now / 60000)}`);
   const rate = await env.DB.prepare("INSERT INTO rate_limits (key, count, expires_at) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = rate_limits.count + 1 RETURNING count").bind(key, now + 86400000).first();
   if (rate.count > 100) return json({ error: "Too many attempts from this network. Please try again in one minute." }, 429);
   await env.DB.prepare("DELETE FROM rate_limits WHERE expires_at < ?").bind(now).run();
-  const emailHash = await fingerprint(env.HASH_SECRET, `email:${email}`);
+  const signerHash = await fingerprint(env.HASH_SECRET, `signer:${signerId}`);
   const signature = { id: crypto.randomUUID(), name, signedAt: new Date().toISOString() };
-  const inserted = await env.DB.prepare("INSERT INTO signatures (id, name, email_hash, signed_at) VALUES (?, ?, ?, ?) ON CONFLICT(email_hash) DO NOTHING RETURNING id").bind(signature.id, signature.name, emailHash, signature.signedAt).first();
-  if (!inserted) return json({ error: "This email has already signed. Thank you for supporting the encore!" }, 409);
+  const inserted = await env.DB.prepare("INSERT INTO signatures (id, name, signer_hash, signed_at) VALUES (?, ?, ?, ?) ON CONFLICT(signer_hash) DO NOTHING RETURNING id").bind(signature.id, signature.name, signerHash, signature.signedAt).first();
+  if (!inserted) return json({ error: "This browser has already signed. Thank you for supporting the encore!" }, 409);
   return json({ signature }, 201);
 }
 export default {

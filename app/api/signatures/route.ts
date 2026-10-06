@@ -1,4 +1,5 @@
 import { petitionRequest } from "@/lib/petition";
+import { type NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
   } catch { return unavailable(); }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
   const allowedOrigins = [new URL(request.url).origin, process.env.NEXT_PUBLIC_SITE_URL].filter(Boolean);
   let sameHost = false;
@@ -29,14 +30,26 @@ export async function POST(request: Request) {
     if (raw.length > 4096) return Response.json({ error: "Please keep your name under 70 characters." }, { status: 413 });
     body = JSON.parse(raw);
   } catch { return Response.json({ error: "Please check your details and try again." }, { status: 400 }); }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return Response.json({ error: "Please enter your name and try again." }, { status: 400 });
+  // A random browser identifier replaces email-based duplicate detection.
+  // Read it only from our cookie; never accept a caller-supplied signer ID.
+  const previousSigner = request.cookies.get("encore-signer")?.value;
+  const signerId = previousSigner && /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(previousSigner)
+    ? previousSigner : crypto.randomUUID();
   try {
     // Vercel overwrites this header with the actual client IP. Do not trust a
     // caller-supplied x-forwarded-for chain for the persistent rate limiter.
     const ip = request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ?? "local";
     const response = await petitionRequest("/signatures", {
-      method: "POST", headers: { "X-Petition-IP": ip }, body: JSON.stringify(body),
+      method: "POST", headers: { "X-Petition-IP": ip },
+      body: JSON.stringify({ name: body.name, website: body.website, consent: body.consent, startedAt: body.startedAt, signerId }),
     });
     if (response.status >= 500) return unavailable();
-    return Response.json(await response.json(), { status: response.status, headers: { "Cache-Control": "no-store" } });
+    const result = NextResponse.json(await response.json(), { status: response.status, headers: { "Cache-Control": "no-store" } });
+    if (response.ok || response.status === 409) result.cookies.set("encore-signer", signerId, {
+      httpOnly: true, secure: new URL(request.url).protocol === "https:",
+      sameSite: "lax", path: "/api/signatures", maxAge: 365 * 24 * 60 * 60,
+    });
+    return result;
   } catch { return unavailable(); }
 }
