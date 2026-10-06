@@ -1,0 +1,8 @@
+petition-api/
+tests/
+artifacts/
+.env*
+.git/
+*.tsbuildinfo
+AGENTS.md
+CLAUDE.md

@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.vercel/
+.env*
+!.env.example
+dist/
+.DS_Store
+.wrangler/
+petition-api/.git/
+petition-api/.openai/.local/
+artifacts/
+*.tsbuildinfo
