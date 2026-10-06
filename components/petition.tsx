@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { ArrowRight, Check, MoveUpRight, Radio } from "lucide-react";
+import { ArrowRight, Check, LockKeyhole, MoveUpRight, Radio } from "lucide-react";
 import type { PetitionSnapshot } from "@/lib/petition";
 import { ShareButton } from "./share-button";
 
@@ -26,7 +26,7 @@ export function Petition({ artwork, intro }: { artwork: ReactNode; intro: ReactN
     const data = new FormData(form);
     setError(""); setPending(true);
     try {
-      const response = await fetch("/api/signatures", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: data.get("name"), website: data.get("website"), consent: true, startedAt: startedAt.current }) });
+      const response = await fetch("/api/signatures", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: data.get("name"), email: data.get("email"), website: data.get("website"), consent: true, startedAt: startedAt.current }) });
       const result = await response.json();
       if (!response.ok) { setError(result.error || "Your signature wasn’t saved. Please try again."); return; }
       setSigner(result.signature.name); setSigned(true); form.reset(); await refresh();
@@ -47,8 +47,9 @@ export function Petition({ artwork, intro }: { artwork: ReactNode; intro: ReactN
       <h2 id="sign-title" className="visually-hidden">Sign the petition</h2>
       <form onSubmit={sign} className="sign-form">
         <div className="field"><label htmlFor="name">Your name <span>PUBLIC</span></label><input autoComplete="name" name="name" id="name" placeholder="Satoshi Nakamoto" minLength={2} maxLength={70} required disabled={pending} /></div>
+        <div className="field"><label htmlFor="email">Email address <LockKeyhole size={12} /><span>PRIVATE</span></label><input type="email" autoComplete="email" inputMode="email" name="email" id="email" placeholder="you@example.com" maxLength={254} required disabled={pending} aria-describedby="email-note" /></div>
         <div className="honeypot" aria-hidden="true"><label htmlFor="website">Leave this blank</label><input name="website" id="website" tabIndex={-1} autoComplete="off" /></div>
-        <p className="sign-note">Just your name. No email. No account.</p>
+        <p className="sign-note" id="email-note">Your email stays private. Only used to let you know if we get enough signatures.</p>
         <button className="sign-button" disabled={pending} type="submit">{pending ? "Adding your name…" : "Sign for one more year"}<MoveUpRight size={20} /></button>
         <p className="consent-note">By signing, you support the petition and agree to display your name publicly. <a href="/privacy">Privacy details</a></p>
         {error && <p className="form-error" role="alert">{error}</p>}

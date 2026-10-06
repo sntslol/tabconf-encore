@@ -20,6 +20,6 @@ export function setup() {
     method, headers: { ...(authenticated ? { Authorization: "Bearer test-api-secret" } : {}), "Content-Type": "application/json", "X-Petition-IP": ip },
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   }), env);
-  const sign = (overrides = {}, ip) => request("/signatures", "POST", { name: "Ada Lovelace", signerId: crypto.randomUUID(), consent: true, website: "", startedAt: Date.now() - 2000, ...overrides }, true, ip);
+  const sign = (overrides = {}, ip) => request("/signatures", "POST", { name: "Ada Lovelace", email: "ada@example.com", signerId: crypto.randomUUID(), consent: true, website: "", startedAt: Date.now() - 2000, ...overrides }, true, ip);
   return { database, request, sign };
 }

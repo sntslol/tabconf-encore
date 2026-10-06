@@ -1,6 +1,6 @@
 # TABCONF ENCORE
 
-A public community petition for another year of TABCONF. Next.js App Router, TypeScript, React, and plain CSS. Just a name: no email, no account, public signatures.
+A public community petition for another year of TABCONF. Next.js App Router, TypeScript, React, and plain CSS. Public names, required private email, and no account. Emails are only for letting signers know if the petition gets enough signatures.
 
 ## Develop
 
@@ -38,7 +38,7 @@ Website environment variables:
 | `PETITION_SERVICE_TOKEN` | Sites service access token, sent only to the data service |
 | `NEXT_PUBLIC_SITE_URL` | Public website origin, for sharing metadata and the sitemap |
 
-The data service uses `API_SECRET`, `HASH_SECRET`, and the managed `DB` binding declared in `petition-api/.openai/hosting.json`. Set its secrets through Sites environment settings. Keep `HASH_SECRET` stable: changing it without migrating existing fingerprints would allow repeat signatures. It is separate from the API credential so the API credential can be rotated independently.
+The data service uses `API_SECRET`, `HASH_SECRET`, and the managed `DB` binding declared in `petition-api/.openai/hosting.json`. Set its secrets through Sites environment settings. Keep `HASH_SECRET` stable: changing it without migrating fingerprints would allow repeat signatures and prevent decryption of existing notification emails. The encryption key is derived using a separate HMAC domain, and each email uses a random AES-GCM nonce bound to its signature ID. This secret is separate from the API credential so the API credential can be rotated independently.
 
 To update the database schema, edit `petition-api/db/schema.ts`, run `npm run db:generate` from `petition-api/`, and publish through the Sites source workflow. Sites applies the generated Drizzle migrations. Applied migration files must not be edited.
 
@@ -52,9 +52,11 @@ npx vercel --prod --scope nirgalsofts-projects
 
 ## Privacy and moderation
 
-Only name, signature ID, and signing time are returned publicly. No email is collected. After a successful signature, Next.js sets a random, anonymous `encore-signer` cookie for one year, scoped to `/api/signatures` with HttpOnly, SameSite=Lax, and Secure on HTTPS. The service stores only an HMAC-SHA256 fingerprint of this identifier, with a unique database index to prevent repeat signatures from the same browser. Different people can use the same name; names are not unique. Network fingerprints provide a persistent limit of 100 attempts per minute, allowing attendees on shared conference Wi-Fi to sign. Expired rate records are removed on later submissions. Names render as text, never HTML.
+Only name, signature ID, and signing time are returned publicly, including after a successful submission. Email is required by the form and server, and stored encrypted. It is only for notifying signers if the petition gets enough signatures, not for a newsletter or marketing. The new column is nullable to preserve earlier signatures that were collected without email; missing or blank email is rejected for new signatures. After a successful signature, Next.js sets a random, anonymous `encore-signer` cookie for one year, scoped to `/api/signatures` with HttpOnly, SameSite=Lax, and Secure on HTTPS. The service stores only an HMAC-SHA256 fingerprint of this identifier, with a unique database index to prevent repeat signatures from the same browser. Different people can use the same name; names are not unique. Network fingerprints provide a persistent limit of 100 attempts per minute, allowing attendees on shared conference Wi-Fi to sign. Expired rate records are removed on later submissions. Names render as text, never HTML.
 
 Maintainers can remove spam or fulfill a removal request using the protected `DELETE /signatures/<id>` endpoint on the data service. Authenticate server-side with `Authorization: Bearer <API_SECRET>` and `OAI-Sites-Authorization: Bearer <PETITION_SERVICE_TOKEN>`. There is no public deletion endpoint or browser admin credential. Never paste these tokens into issues or commits.
+
+For the milestone notification, maintainers can retrieve opted-in contacts from the protected data-service `GET /notification-contacts?offset=0` endpoint with those same credentials. It returns at most 100 contacts per page plus `hasMore`; increase the offset by 100 while `hasMore` is true. The public Next.js API never exposes this endpoint. Deduplicate addresses before sending the milestone update, keep exports private, and remove private exports when no longer needed. Deleting a signature also deletes its associated email. This change collects opt-ins; no automatic email sender or signature threshold is configured.
 
 Signatures are expressions of support, not verified identities. Browser-based duplicate detection is a convenience, not proof of one signature per person: cookies can be cleared and devices can be shared. This intentionally keeps the petition easy to sign. The appended database migration renames the old fingerprint column while preserving existing public signatures.
 

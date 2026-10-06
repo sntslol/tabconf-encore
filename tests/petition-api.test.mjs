@@ -5,7 +5,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { setup } from "./petition-fixture.mjs";
 
 
-test("name-only signatures persist without exposing anonymous identifiers", async () => {
+test("signatures persist without exposing email or anonymous identifiers", async () => {
   const { database, request, sign } = setup();
   const signerId = crypto.randomUUID();
   assert.equal((await sign({ signerId })).status, 201);
@@ -28,13 +28,14 @@ test("simultaneous submissions from the same browser count once", async () => {
 });
 test("invalid fields, absent consent, and bot traps cannot write signatures", async () => {
   const { request, sign } = setup();
-  for (const invalid of [{ signerId: "invalid" }, { name: "A" }, { name: "<script>bad</script>" }, { name: "https://spam.test" }, { consent: false }, { website: "spam" }, { startedAt: Date.now() + 10000 }]) assert.equal((await sign(invalid)).status, 400);
+  for (const invalid of [{ signerId: "invalid" }, { name: "A" }, { name: "<script>bad</script>" }, { name: "https://spam.test" }, { email: "invalid" }, { email: 42 }, { email: `${"a".repeat(255)}@example.com` }, { consent: false }, { website: "spam" }, { startedAt: Date.now() + 10000 }]) assert.equal((await sign(invalid)).status, 400);
   assert.equal((await (await request("/signatures")).json()).total, 0);
 });
 test("data service rejects unauthorized writes and reads", async () => {
   const { request } = setup();
   assert.equal((await request("/signatures", "GET", undefined, false)).status, 401);
   assert.equal((await request("/signatures", "POST", {}, false)).status, 401);
+  assert.equal((await request("/notification-contacts", "GET", undefined, false)).status, 401);
 });
 test("public names paginate and moderation removes only the chosen signature", async () => {
   const { request, sign } = setup();
@@ -56,11 +57,10 @@ test("rate limits persist in the database and keep separate networks independent
 });
 
 
-test("different browsers can sign with the same public name and no email", async () => {
+test("missing or blank email cannot create a new signature", async () => {
   const { request, sign } = setup();
-  assert.equal((await sign({ signerId: undefined })).status, 201);
-  assert.equal((await sign()).status, 201);
-  assert.equal((await (await request("/signatures")).json()).total, 2);
+  for (const email of [undefined, null, "", "   "]) assert.equal((await sign({ email })).status, 400);
+  assert.equal((await (await request("/signatures")).json()).total, 0);
 });
 
 test("the migration preserves existing signatures", () => {
@@ -70,6 +70,33 @@ test("the migration preserves existing signatures", () => {
   database.exec(readFileSync(new URL(files[0], migrations), "utf8"));
   database.prepare("INSERT INTO signatures (id, name, email_hash, signed_at) VALUES (?, ?, ?, ?)").run("old-id", "Existing supporter", "legacy-fingerprint", "2026-10-01T00:00:00Z");
   for (const file of files.slice(1)) database.exec(readFileSync(new URL(file, migrations), "utf8"));
-  assert.deepEqual({ ...database.prepare("SELECT * FROM signatures").get() }, { id: "old-id", name: "Existing supporter", signer_hash: "legacy-fingerprint", signed_at: "2026-10-01T00:00:00Z" });
+  assert.deepEqual({ ...database.prepare("SELECT * FROM signatures").get() }, { id: "old-id", name: "Existing supporter", signer_hash: "legacy-fingerprint", signed_at: "2026-10-01T00:00:00Z", email_ciphertext: null });
+  database.close();
+});
+
+test("emails are encrypted, retrievable only by the maintainer, and absent from public responses", async () => {
+  const { database, request, sign } = setup();
+  const email = "private-supporter@example.com";
+  const first = await sign({ email: ` ${email.toUpperCase()} ` });
+  assert.equal(first.status, 201);
+  const signature = (await first.json()).signature;
+  assert.deepEqual(Object.keys(signature).sort(), ["id", "name", "signedAt"]);
+  assert.equal(JSON.stringify(signature).includes(email), false);
+  assert.equal((await sign({ email })).status, 201);
+  const rows = database.prepare("SELECT email_ciphertext FROM signatures").all();
+  assert.equal(rows.filter(row => row.email_ciphertext === null).length, 0);
+  const ciphertexts = rows.filter(row => row.email_ciphertext).map(row => row.email_ciphertext);
+  assert.equal(new Set(ciphertexts).size, 2);
+  for (const ciphertext of ciphertexts) { assert.match(ciphertext, /^v1\./); assert.equal(ciphertext.includes(email), false); }
+  const publicData = await (await request("/signatures")).json();
+  assert.equal(publicData.total, 2);
+  for (const item of publicData.signatures) assert.deepEqual(Object.keys(item).sort(), ["id", "name", "signedAt"]);
+  const contacts = await (await request("/notification-contacts")).json();
+  assert.equal(contacts.contacts.length, 2);
+  assert.equal(contacts.hasMore, false);
+  assert.equal(contacts.contacts.every(contact => contact.email === email), true);
+  assert.equal((await request("/notification-contacts?offset=invalid")).status, 400);
+  assert.equal((await request(`/signatures/${signature.id}`, "DELETE")).status, 200);
+  assert.equal((await (await request("/notification-contacts")).json()).contacts.length, 1);
   database.close();
 });
