@@ -66,8 +66,8 @@ test("public names paginate and moderation removes only the chosen signature", a
 });
 test("rate limits persist in the database and keep separate networks independent", async () => {
   const { request, sign } = setup();
-  for (let i = 0; i < 15; i++) await sign({ email: `rate${i}@example.com` });
+  for (let i = 0; i < 100; i++) await sign({ email: `rate${i}@example.com` });
   assert.equal((await sign({ email: "limited@example.com" })).status, 429);
   assert.equal((await sign({ email: "other@example.com" }, "other-ip")).status, 201);
-  assert.equal((await (await request("/signatures")).json()).total, 16);
+  assert.equal((await (await request("/signatures")).json()).total, 101);
 });

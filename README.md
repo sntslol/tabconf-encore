@@ -48,11 +48,11 @@ To update the database schema, edit `petition-api/db/schema.ts`, run `npm run db
 npx vercel --prod --scope nirgalsofts-projects
 ```
 
-To connect `tabconf.com` or `encore.tabconf.com`, add the chosen domain in Vercel and configure the DNS records Vercel supplies. Update `NEXT_PUBLIC_SITE_URL` to that origin and redeploy. The current TABCONF conference website has not been replaced.
+`tabconf.com` is added and ownership-verified in Vercel. Its DNS still points to GitHub Pages. To activate the petition there, replace the current apex (`@`) record pointing to `tabconf.github.io` at Namecheap with the two A records Vercel recommends: `216.150.1.1` and `216.150.16.1`. Keep the existing nameservers and other DNS records. After propagation, run `npx vercel domains verify tabconf.com --scope nirgalsofts-projects`, update `NEXT_PUBLIC_SITE_URL` to `https://tabconf.com`, and redeploy. These DNS changes replace the current root conference website with the petition; they have not been made by this project.
 
 ## Privacy and moderation
 
-Only name, signature ID, and signing time are returned publicly. The email is normalized and transformed with HMAC-SHA256; the raw email is not stored. A unique database index prevents duplicate signatures, including simultaneous requests. Network fingerprints provide a persistent limit of 15 attempts per ten-minute window. Expired rate records are removed on later submissions. Names render as text, never HTML.
+Only name, signature ID, and signing time are returned publicly. The email is normalized and transformed with HMAC-SHA256; the raw email is not stored. A unique database index prevents duplicate signatures, including simultaneous requests. Network fingerprints provide a persistent limit of 100 attempts per minute, allowing attendees on shared conference Wi-Fi to sign. Expired rate records are removed on later submissions. Names render as text, never HTML.
 
 Maintainers can remove spam or fulfill a removal request using the protected `DELETE /signatures/<id>` endpoint on the data service. Authenticate server-side with `Authorization: Bearer <API_SECRET>` and `OAI-Sites-Authorization: Bearer <PETITION_SERVICE_TOKEN>`. There is no public deletion endpoint or browser admin credential. Never paste these tokens into issues or commits.
 

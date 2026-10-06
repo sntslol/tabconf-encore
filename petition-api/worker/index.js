@@ -43,9 +43,11 @@ async function sign(request, env) {
   if (!env.HASH_SECRET) throw new Error("Signature hashing is not configured.");
   const ip = request.headers.get("x-petition-ip") || "unknown";
   const now = Date.now();
-  const key = await fingerprint(env.HASH_SECRET, `rate:${ip}:${Math.floor(now / 600000)}`);
+  // A conference crowd may share one Wi-Fi address. Keep the network limit
+  // generous; email uniqueness and the bot traps do the finer filtering.
+  const key = await fingerprint(env.HASH_SECRET, `rate:${ip}:${Math.floor(now / 60000)}`);
   const rate = await env.DB.prepare("INSERT INTO rate_limits (key, count, expires_at) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = rate_limits.count + 1 RETURNING count").bind(key, now + 86400000).first();
-  if (rate.count > 15) return json({ error: "Too many attempts from this network. Please try again in 10 minutes." }, 429);
+  if (rate.count > 100) return json({ error: "Too many attempts from this network. Please try again in one minute." }, 429);
   await env.DB.prepare("DELETE FROM rate_limits WHERE expires_at < ?").bind(now).run();
   const emailHash = await fingerprint(env.HASH_SECRET, `email:${email}`);
   const signature = { id: crypto.randomUUID(), name, signedAt: new Date().toISOString() };
