@@ -1,5 +1,5 @@
 import Link from "next/link";
-export const metadata = { title: "Your privacy — TABCONF ENCORE" };
+export const metadata = { title: "Your privacy — TABCONF ENCORE", alternates: { canonical: "/privacy" } };
 export default function Privacy() {
   return (
     <main className="privacy-page">

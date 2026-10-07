@@ -50,7 +50,17 @@ To update the database schema, edit `petition-api/db/schema.ts`, run `npm run db
 npx vercel --prod --scope nirgalsofts-projects
 ```
 
-`tabconf.com` is added and ownership-verified in Vercel. Its DNS still points to GitHub Pages. To activate the petition there, replace the current apex (`@`) record pointing to `tabconf.github.io` at Namecheap with the two A records Vercel recommends: `216.150.1.1` and `216.150.16.1`. Keep the existing nameservers and other DNS records. After propagation, run `npx vercel domains verify tabconf.com --scope nirgalsofts-projects`, update `NEXT_PUBLIC_SITE_URL` to `https://tabconf.com`, and redeploy. These DNS changes replace the current root conference website with the petition; they have not been made by this project.
+The petition's canonical domain is `https://savetabconf.com`. Both `savetabconf.com` and `www.savetabconf.com` are connected to this Vercel project; `www` permanently redirects to the apex with HTTP 308. `NEXT_PUBLIC_SITE_URL` is set to the canonical origin in production, and sharing links, page canonicals, Open Graph URLs, robots, and the sitemap use it.
+
+DNS is managed by the current external registrar nameservers. On October 6, 2026, Vercel confirmed that the existing `@` A record (`76.76.21.21`) and `www` CNAME (`cname.vercel-dns.com`) are valid and HTTPS works. No registrar changes were needed. Vercel's current preferred values are below; it marks switching from the existing records as optional. Use the latest values in the project's Domains screen if they change.
+
+| Type | Name | Preferred value returned by Vercel |
+| --- | --- | --- |
+| A | `@` | `216.150.1.1` |
+| A | `@` | `216.150.16.1` |
+| CNAME | `www` | `1e531deca1f4bef9.vercel-dns-016.com` |
+
+The earlier `tabconf.com` attachment still exists in Vercel, but its DNS continues to serve the official conference site. The petition's domain setup does not change that conference domain.
 
 ## Privacy and moderation
 
