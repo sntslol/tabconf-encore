@@ -10,7 +10,7 @@ export function ShareButton({ className = "" }: { className?: string }) {
   async function share() {
     const url = SITE_URL;
     if (navigator.share) {
-      try { await navigator.share({ title: "TABCONF ENCORE", text: "The final TABCONF? We’re choosing denial. Add your name for one more year.", url }); return; }
+      try { await navigator.share({ title: "SAVE TABCONF — ENCORE", text: "The final TABCONF? We’re choosing denial. Add your name for one more year.", url }); return; }
       catch (error) { if (error instanceof DOMException && error.name === "AbortError") return; }
     }
     try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 3000); }

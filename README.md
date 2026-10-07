@@ -1,4 +1,4 @@
-# TABCONF ENCORE
+# SAVE TABCONF · ENCORE
 
 A public community petition for another year of TABCONF. Next.js App Router, TypeScript, React, and plain CSS. Public names, required private email, and no account. Emails are only for letting signers know if the petition gets enough signatures.
 
@@ -74,8 +74,8 @@ Signatures are expressions of support, not verified identities. Browser-based du
 
 ## Design
 
-The design follows [TABCONF’s current website](https://8.tabconf.com): its charcoal surfaces, green links, amber buttons, sidebar layout, and header treatment. Instrument Sans and JetBrains Mono are served locally through `next/font/local`; their OFL licenses are included in `public/fonts/`. The original TABCONF 8 keycap logo and poster are served from `public/brand/`. The poster is credited to [NoGood](https://nogood.studio), as on the official website. These existing edition assets identify the community the petition supports; ENCORE is a request for another year, not an announced event.
+The design follows [TABCONF’s current website](https://8.tabconf.com): its charcoal surfaces, green links, amber buttons, sidebar layout, and header treatment. SAVE TABCONF is the main campaign headline, with ENCORE as its subtitle. Instrument Sans and JetBrains Mono are served locally through `next/font/local`; their OFL licenses are included in `public/fonts/`. The original TABCONF 8 keycap logo and poster remain in `public/brand/`. The petition uses an edited logo variant with the yellow key's 8 replaced by a question mark; its image-generation prompt is preserved in `scripts/save-tabconf-logo-prompt.md`. The poster is credited to [NoGood](https://nogood.studio), as on the official website. These edition assets identify the community the petition supports; ENCORE is a request for another year, not an announced event.
 
 The website includes mobile form shortcuts, keyboard focus states, reduced-motion support, and a branded PNG share preview. No analytics or advertising cookies are installed by this application.
 
-Regenerate `public/og.png` from the original brand assets with `npm run generate:share-image` after changing the share image layout in `scripts/generate-share-image.tsx`.
+Regenerate `public/og.png` from the campaign logo and original poster with `npm run generate:share-image` after changing the share image layout in `scripts/generate-share-image.tsx`.

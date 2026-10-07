@@ -1,10 +1,10 @@
 import Link from "next/link";
-export const metadata = { title: "Your privacy — TABCONF ENCORE", alternates: { canonical: "/privacy" } };
+export const metadata = { title: "Your privacy — SAVE TABCONF", alternates: { canonical: "/privacy" } };
 export default function Privacy() {
   return (
     <main className="privacy-page">
       <Link href="/" className="text-link">← Back to the petition</Link>
-      <span className="section-kicker">TABCONF ENCORE</span>
+      <span className="section-kicker">SAVE TABCONF · ENCORE</span>
       <h1>Your name. Your voice.<br />Your privacy.</h1>
       <h2>What appears publicly</h2>
       <p>The name you enter appears on the petition’s public signature list, along with the time you signed. Use the name you’re comfortable sharing. If you check “Only show my initials,” we save and display only your initials; your full name is not saved. Your email never appears on the public list.</p>

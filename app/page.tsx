@@ -9,14 +9,23 @@ export default function Home() {
       <a href="#sign" className="skip-link">Skip to sign the petition</a>
       <header className="site-header">
         <div className="site-header__inner">
-          <a className="site-title" href="/" aria-label="TABCONF ENCORE home">
+          <a className="site-title" href="/" aria-label="SAVE TABCONF home">
             <span className="site-title__prompt" aria-hidden="true"><span className="site-title__dot" /></span>
+            <span className="site-title__save">SAVE</span>
             <span className="site-title__word"><span className="site-title__tab">TAB</span><span className="site-title__conf">Conf</span></span>
             <span className="site-title__ver">ENCORE</span>
           </a>
           <ShareButton className="header-share" />
         </div>
       </header>
+
+      <section className="campaign-banner" aria-labelledby="hero-title">
+        <div className="campaign-banner__inner">
+          <p className="section-kicker">A very reasonable plea</p>
+          <h1 id="hero-title"><span>SAVE</span> TABCONF</h1>
+          <p className="campaign-banner__subtitle"><strong>ENCORE</strong> One more year. One more TABCONF.</p>
+        </div>
+      </section>
 
       <div className="layout">
         <aside className="sidebar">
@@ -43,10 +52,7 @@ export default function Home() {
             }
             intro={
               <div className="encore-intro">
-                <p className="home-hero__eyebrow">A very reasonable plea</p>
-                <Image className="home-hero__logo" src="/brand/tabconf8-logo.png" width={720} height={411} sizes="250px" loading="eager" alt="TABCONF 8 — the official colorful keycap logo" />
-                <h1 id="hero-title">ENCORE</h1>
-                <p className="home-hero__tagline">One more year. One more TABCONF.</p>
+                <Image className="home-hero__logo" src="/brand/tabconf-question-logo.png" width={1662} height={946} sizes="250px" loading="eager" alt="TABCONF keycap artwork with a question mark on the yellow key, asking for another edition." />
                 <p className="home-hero__plea">“The final TABCONF”? We’re choosing denial.</p>
               </div>
             }
@@ -64,7 +70,7 @@ export default function Home() {
 
       <footer className="site-footer">
         <div className="site-footer__inner">
-          <p className="site-footer__tagline">TABConf ENCORE · One community. One more year.</p>
+          <p className="site-footer__tagline">SAVE TABCONF · ENCORE · One community. One more year.</p>
           <p>Community-led. Slightly dramatic. Very sincere.</p>
           <nav aria-label="Footer"><a href="https://tabconf.com" target="_blank" rel="noreferrer">TABConf.com</a><a href="/privacy">Privacy</a><a href="https://github.com/sntslol/tabconf-encore" target="_blank" rel="noreferrer">Source code</a></nav>
         </div>
