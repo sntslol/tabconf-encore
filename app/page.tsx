@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { Petition } from "@/components/petition";
 import { ShareButton } from "@/components/share-button";
+import { ApprovedQuotes } from "@/components/approved-quotes";
 
 export default function Home() {
   return (
@@ -23,6 +24,7 @@ export default function Home() {
         <div className="campaign-banner__inner">
           <p className="section-kicker">A very reasonable plea</p>
           <h1 id="hero-title"><span>SAVE</span> TABCONF</h1>
+          <ApprovedQuotes />
           <p className="campaign-banner__subtitle"><strong>ENCORE</strong> One more year. One more TABCONF.</p>
         </div>
       </section>

@@ -41,7 +41,7 @@ body {
 }
 a { color: var(--link); text-underline-offset: 0.18em; }
 a:hover { color: var(--link-hover); }
-button, input { font: inherit; }
+button, input, textarea { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: wait; opacity: 0.65; }
 svg { flex-shrink: 0; }
@@ -153,6 +153,37 @@ svg { flex-shrink: 0; }
 .campaign-banner h1 span { color: var(--accent-orange-bright); }
 .campaign-banner__subtitle { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.35rem 0.8rem; margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
 .campaign-banner__subtitle strong { font-family: var(--font-mono), monospace; font-size: 0.75rem; letter-spacing: 0.15em; font-weight: 500; color: var(--link); }
+.campaign-quote { max-width: 850px; margin: 1rem 0 1.25rem; border-left: 2px solid var(--accent-terminal); padding-left: 1rem; }
+.campaign-quote__stage { display: grid; }
+.campaign-quote blockquote { grid-area: 1 / 1; visibility: hidden; margin: 0; color: var(--text-secondary); font-style: italic; font-size: 1.15rem; line-height: 1.6; overflow-wrap: anywhere; }
+.campaign-quote blockquote.is-active { visibility: visible; }
+.campaign-quote__footer { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; margin-top: 0.4rem; }
+.campaign-quote cite { font-family: var(--font-mono), monospace; font-size: 0.75rem; font-style: normal; color: var(--link); overflow-wrap: anywhere; }
+.campaign-quote__controls { display: flex; align-items: center; gap: 0.4rem; color: var(--text-muted); font-family: var(--font-mono), monospace; font-size: 0.65rem; }
+.campaign-quote__controls button { min-width: 32px; min-height: 32px; display: grid; place-items: center; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-muted); border-radius: 4px; }
+.campaign-quote__controls button:hover { color: var(--link); border-color: var(--link); }
+.field textarea { width: 100%; min-height: 105px; padding: 0.7rem 0.85rem; border: 1px solid var(--border-strong); border-radius: 5px; background: var(--bg-deep); color: var(--text); font-size: 1rem; line-height: 1.5; resize: vertical; }
+.field textarea::placeholder { color: var(--text-dim); }
+.message-field__notes { display: flex; align-items: flex-start; gap: 0.75rem; }
+.message-field__notes .sign-note { margin: 0.35rem 0 0; flex: 1; }
+.message-field__notes > span { flex-shrink: 0; font-family: var(--font-mono), monospace; font-size: 0.65rem; color: var(--text-muted); margin-top: 0.4rem; }
+.moderation-page { max-width: 850px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+.moderation-page > .section-kicker { margin-top: 2rem; }
+.moderation-page h1 { font-family: var(--font-mono), monospace; color: var(--text); line-height: 1.25; font-size: clamp(1.6rem, 5vw, 2.5rem); }
+.moderator-login { max-width: 420px; padding: 1.25rem; background: var(--bg-panel); border: 1px solid var(--border-strong); border-radius: 8px; }
+.moderation-toolbar, .moderation-tabs, .moderation-tools, .moderation-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; }
+.moderation-toolbar { justify-content: space-between; margin: 1.75rem 0 1rem; }
+.moderation-tabs button, .moderation-actions button { border: 1px solid var(--border-strong); border-radius: 4px; padding: 0.45rem 0.75rem; background: var(--bg-panel); color: var(--text-secondary); font-size: 0.85rem; }
+.moderation-tabs .is-active { border-color: var(--accent-orange); color: var(--accent-orange-bright); }
+.moderation-actions .approve-button { border-color: var(--accent-terminal); color: var(--link); background: var(--glow-green); }
+.text-button { background: transparent; border: 0; padding: 0.25rem; color: var(--link); font-size: 0.85rem; }
+.moderation-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
+.moderation-card { padding: 1.25rem; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--bg-elevated); }
+.moderation-card blockquote { margin: 0 0 0.6rem; color: var(--text); font-style: italic; overflow-wrap: anywhere; }
+.moderation-author { color: var(--link); font-size: 0.85rem; overflow-wrap: anywhere; }
+.moderation-author time { display: block; font-family: var(--font-mono), monospace; color: var(--text-muted); font-size: 0.65rem; }
+.moderation-notice { color: var(--link); }
+.moderation-empty { padding: 1.25rem; border: 1px dashed var(--border-strong); border-radius: 8px; }
 
 /* TABCONF's narrow sidebar and bordered main panel. */
 .layout {

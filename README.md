@@ -4,6 +4,8 @@ A public community petition for another year of TABCONF. Next.js App Router, Typ
 
 The live progress bar aims for 1,000 signatures and updates with the signature count. Signers can optionally choose “Only show my initials.” The data service converts the name before storage, so only initials are saved and returned for those signatures. Existing signatures keep their original public names. Reaching the goal does not automatically send email or guarantee another event.
 
+An optional message of up to 300 characters is saved with each new signature. Every message starts pending; signing itself is immediate. The owner approves or hides messages at `/moderate`. Approved messages rotate as italic quotes beneath SAVE TABCONF, with the public name or initials. Visitors can pause or step through quotes; reduced-motion users start with rotation paused. No placeholder endorsements are published.
+
 ## Develop
 
 Requires Node.js 22.13 or newer. Production uses Node.js 24.
@@ -29,7 +31,7 @@ The tests exercise the real SQL schema through SQLite: privacy, simultaneous dup
 
 ## Hosting and persistence
 
-The Next.js website runs on Vercel. The small `petition-api/` Worker runs on Sites with its managed Cloudflare D1 database. This keeps petition records independent of application instances and deployments. The browser talks only to the Next.js `/api/signatures` endpoint; Next.js authenticates to the data service.
+The Next.js website runs on Vercel. The small `petition-api/` Worker runs on Sites with its managed Cloudflare D1 database. This keeps petition records independent of application instances and deployments. The browser talks to the Next.js signature, approved-quote, and owner-moderation endpoints; Next.js authenticates to the data service.
 
 Website environment variables:
 
@@ -38,6 +40,7 @@ Website environment variables:
 | `PETITION_API_URL` | Published data service origin |
 | `PETITION_API_SECRET` | Shared server credential, matching the Worker's `API_SECRET` |
 | `PETITION_SERVICE_TOKEN` | Sites service access token, sent only to the data service |
+| `PETITION_ADMIN_PASSWORD` | Random owner-only password of at least 32 characters for `/moderate`; never public |
 | `NEXT_PUBLIC_SITE_URL` | Public website origin, for sharing metadata and the sitemap |
 
 The data service uses `API_SECRET`, `HASH_SECRET`, and the managed `DB` binding declared in `petition-api/.openai/hosting.json`. Set its secrets through Sites environment settings. Keep `HASH_SECRET` stable: changing it without migrating fingerprints would allow repeat signatures and prevent decryption of existing notification emails. The encryption key is derived using a separate HMAC domain, and each email uses a random AES-GCM nonce bound to its signature ID. This secret is separate from the API credential so the API credential can be rotated independently.
@@ -66,7 +69,11 @@ The earlier `tabconf.com` attachment still exists in Vercel, but its DNS continu
 
 Only name, signature ID, and signing time are returned publicly, including after a successful submission. Email is required by the form and server, and stored encrypted. It is only for notifying signers if the petition gets enough signatures, not for a newsletter or marketing. The new column is nullable to preserve earlier signatures that were collected without email; missing or blank email is rejected for new signatures. After a successful signature, Next.js sets a random, anonymous `encore-signer` cookie for one year, scoped to `/api/signatures` with HttpOnly, SameSite=Lax, and Secure on HTTPS. The service stores only an HMAC-SHA256 fingerprint of this identifier, with a unique database index to prevent repeat signatures from the same browser. Different people can use the same name; names are not unique. Network fingerprints provide a persistent limit of 100 attempts per minute, allowing attendees on shared conference Wi-Fi to sign. Expired rate records are removed on later submissions. Names render as text, never HTML.
 
-Maintainers can remove spam or fulfill a removal request using the protected `DELETE /signatures/<id>` endpoint on the data service. Authenticate server-side with `Authorization: Bearer <API_SECRET>` and `OAI-Sites-Authorization: Bearer <PETITION_SERVICE_TOKEN>`. There is no public deletion endpoint or browser admin credential. Never paste these tokens into issues or commits.
+Maintainers can remove spam or fulfill a removal request using the protected `DELETE /signatures/<id>` endpoint on the data service. Authenticate server-side with `Authorization: Bearer <API_SECRET>` and `OAI-Sites-Authorization: Bearer <PETITION_SERVICE_TOKEN>`. There is no public deletion endpoint, and the browser never receives these service credentials. Never paste these tokens into issues or commits.
+
+The owner approval page is `/moderate`. Its password stays server-side; sign-in creates an HMAC-signed, HttpOnly session cookie scoped to `/api/moderation`, with SameSite=Strict, Secure on HTTPS, and an 8-hour expiry. All review reads and writes validate the session; writes also require the site's exact Origin and JSON. Sign-in is limited to 10 attempts per network per 15-minute window in the persistent database. Rotating the moderator password invalidates outstanding sessions. The page is excluded from indexing and the sitemap.
+
+Messages are stored on the signature record with `pending`, `approved`, or `rejected` status and a review timestamp. The public `/api/messages` returns only the 100 most recently approved quotes (ID, public name, message); pending and rejected messages never appear in public responses. Quotes refresh every 30 seconds and rotate every 8 seconds while the tab is visible. Hiding an approved quote removes it on the next refresh. `/api/signatures` continues to expose only ID, name, and time. Deleting a signature removes its message too. The private queue paginates in groups of 20 and never returns email addresses.
 
 For the milestone notification, maintainers can retrieve opted-in contacts from the protected data-service `GET /notification-contacts?offset=0` endpoint with those same credentials. It returns at most 100 contacts per page plus `hasMore`; increase the offset by 100 while `hasMore` is true. The public Next.js API never exposes this endpoint. Deduplicate addresses before sending the milestone update, keep exports private, and remove private exports when no longer needed. Deleting a signature also deletes its associated email. This change collects opt-ins; no automatic email sender or signature threshold is configured.
 

@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const ip = request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ?? "local";
     const response = await petitionRequest("/signatures", {
       method: "POST", headers: { "X-Petition-IP": ip },
-      body: JSON.stringify({ name: body.name, initialsOnly: body.initialsOnly, email: body.email, website: body.website, consent: body.consent, startedAt: body.startedAt, signerId }),
+      body: JSON.stringify({ name: body.name, initialsOnly: body.initialsOnly, email: body.email, message: body.message, website: body.website, consent: body.consent, startedAt: body.startedAt, signerId }),
     });
     if (response.status >= 500) return unavailable();
     const result = NextResponse.json(await response.json(), { status: response.status, headers: { "Cache-Control": "no-store" } });

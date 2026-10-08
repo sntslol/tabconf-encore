@@ -10,6 +10,10 @@ export default function Privacy() {
       <p>The name you enter appears on the petition’s public signature list, along with the time you signed. Use the name you’re comfortable sharing. If you check “Only show my initials,” we save and display only your initials; your full name is not saved. Your email never appears on the public list.</p>
       <h2>Your private email</h2>
       <p>Email is required to sign, so we can let you know if we get enough signatures. That is its only use. We store it encrypted, and only the petition maintainer can access it for that purpose. Your email is never shown publicly and does not subscribe you to a newsletter or marketing list.</p>
+      <h2>Your optional message</h2>
+      <p>You can add a message of 300 characters or less about why you want TABConf to continue. The petition owner reviews it first. Pending and rejected messages stay out of the public website and its public API. If approved, your message may appear as a quote beneath SAVE TABCONF, attributed to your public name or initials. Please leave out email addresses and other personal contact details. The owner can hide an approved quote later; removing your signature also removes its message.</p>
+      <h2>Owner access</h2>
+      <p>The message approval page uses a password and a separate session cookie that lasts 8 hours. This cookie is only set when the petition owner signs in, and is separate from the anonymous signing cookie below.</p>
       <h2>Preventing repeat signatures</h2>
       <p>After you sign, we set a small cookie containing a random, anonymous browser identifier. It lasts for one year and helps prevent this browser from signing again. We store only a cryptographic fingerprint of that identifier. The identifier is not displayed publicly.</p>
       <h2>Keeping the petition fair</h2>

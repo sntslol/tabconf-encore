@@ -95,7 +95,7 @@ test("the migration preserves existing signatures", () => {
   database.exec(readFileSync(new URL(files[0], migrations), "utf8"));
   database.prepare("INSERT INTO signatures (id, name, email_hash, signed_at) VALUES (?, ?, ?, ?)").run("old-id", "Existing supporter", "legacy-fingerprint", "2026-10-01T00:00:00Z");
   for (const file of files.slice(1)) database.exec(readFileSync(new URL(file, migrations), "utf8"));
-  assert.deepEqual({ ...database.prepare("SELECT * FROM signatures").get() }, { id: "old-id", name: "Existing supporter", signer_hash: "legacy-fingerprint", signed_at: "2026-10-01T00:00:00Z", email_ciphertext: null });
+  assert.deepEqual({ ...database.prepare("SELECT * FROM signatures").get() }, { id: "old-id", name: "Existing supporter", signer_hash: "legacy-fingerprint", signed_at: "2026-10-01T00:00:00Z", email_ciphertext: null, message: null, message_status: null, message_reviewed_at: null });
   database.close();
 });
 
