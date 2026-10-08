@@ -155,13 +155,16 @@ svg { flex-shrink: 0; }
 .campaign-banner__subtitle strong { font-family: var(--font-mono), monospace; font-size: 0.75rem; letter-spacing: 0.15em; font-weight: 500; color: var(--link); }
 .campaign-quote { max-width: 850px; margin: 1rem 0 1.25rem; border-left: 2px solid var(--accent-terminal); padding-left: 1rem; }
 .campaign-quote__stage { display: grid; }
-.campaign-quote blockquote { grid-area: 1 / 1; visibility: hidden; margin: 0; color: var(--text-secondary); font-style: italic; font-size: 1.15rem; line-height: 1.6; overflow-wrap: anywhere; }
-.campaign-quote blockquote.is-active { visibility: visible; }
-.campaign-quote__footer { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; margin-top: 0.4rem; }
+.campaign-quote__slide { grid-area: 1 / 1; visibility: hidden; margin: 0; }
+.campaign-quote__slide.is-active { visibility: visible; animation: community-quote-enter 240ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.campaign-quote blockquote { margin: 0; color: var(--text-secondary); font-style: italic; font-size: 1.15rem; line-height: 1.6; overflow-wrap: anywhere; }
+.campaign-quote figcaption { margin-top: 0.4rem; }
 .campaign-quote cite { font-family: var(--font-mono), monospace; font-size: 0.75rem; font-style: normal; color: var(--link); overflow-wrap: anywhere; }
-.campaign-quote__controls { display: flex; align-items: center; gap: 0.4rem; color: var(--text-muted); font-family: var(--font-mono), monospace; font-size: 0.65rem; }
+.campaign-quote__controls { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.6rem; color: var(--text-muted); font-family: var(--font-mono), monospace; font-size: 0.65rem; }
 .campaign-quote__controls button { min-width: 32px; min-height: 32px; display: grid; place-items: center; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-muted); border-radius: 4px; }
 .campaign-quote__controls button:hover { color: var(--link); border-color: var(--link); }
+@keyframes community-quote-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .campaign-quote__slide.is-active { animation: none; } }
 .field textarea { width: 100%; min-height: 105px; padding: 0.7rem 0.85rem; border: 1px solid var(--border-strong); border-radius: 5px; background: var(--bg-deep); color: var(--text); font-size: 1rem; line-height: 1.5; resize: vertical; }
 .field textarea::placeholder { color: var(--text-dim); }
 .message-field__notes { display: flex; align-items: flex-start; gap: 0.75rem; }
